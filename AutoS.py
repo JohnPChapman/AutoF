@@ -1,6 +1,5 @@
 # AutoF settings handler Beta 0.0.1
 from datetime import datetime
-import sys
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -39,24 +38,18 @@ def aboutWindow(event=None):
     aboutText.pack(pady=10)
     aboutText.tag_config('justified', justify=CENTER)
     aboutText.insert(END, 'Copyright © 2022 AutoF\n'
-
-                          'Permission is hereby granted, free of charge, to any person obtaining a copy of '
-                          'this software and associated documentation files (the "Software"), to deal in '
-                          'the Software without restriction, including without limitation the rights to '
-                          'use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies '
-                          'of the Software, and to permit persons to whom the Software is furnished to do '
-                          'so, subject to the following conditions:\n\n'
-
-                          'The above copyright notice and this permission notice shall be included in all '
-                          'copies or substantial portions of the Software.\n\n'
-
-                          'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR '
-                          'IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, '
-                          'FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE '
-                          'AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER '
-                          'LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, '
-                          'OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE '
-                          'SOFTWARE.', 'justified')
+                            'AutoF - Automating X-ways & Nuix.\n'
+                            'This program is free software; you can redistribute it and/or\n'
+                            'modify it under the terms of the GNU General Public License\n'
+                            'as published by the Free Software Foundation; either version 2\n'
+                            'of the License, or (at your option) any later version.\n\n'
+                            'This program is distributed in the hope that it will be useful,\n'
+                            'but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
+                            'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n'
+                            'GNU General Public License for more details.\n\n'
+                            'You should have received a copy of the GNU General Public License\n'
+                            'along with this program; if not, write to the Free Software\n'
+                            'Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.', 'justified')
     aboutText.config(state=DISABLED, bg='white')
     aboutExit = Button(about, text='Exit', command=about.destroy)
     aboutExit.pack(pady=5)
@@ -218,16 +211,6 @@ def now():
     rightNow = datetime.now()
     timeNow = rightNow.strftime("%d-%m-%Y %H-%M-%S")
     return timeNow
-
-
-# Catches any unhandled exceptions for debugging, does not capture thread errors
-# def logExceptHook(*exc_info):
-#    text = "".join(traceback.format_exception(*exc_info))
-#    with open('Settings/logs/fatal Error ' + now() + '.txt', 'w') as errorLog:
-#        errorLog.writelines("Unhandled exception: %s" + text)
-#    messagebox.showerror("ERROR", "Fatal error, check \\settings\\Logs\\ for the error and report it.")
-#    sys.exit(1)
-
 
 # converts path for Windows COMPLETE
 @traced
@@ -425,20 +408,17 @@ def generalOptionsWindow(event=None):
         generalOptionsWin.destroy()
 
     def save():
-        def storeSettings(scanDrives, logFileType, completeText, additionalLogCheck, nuixLicense):
+        def storeSettings(scanDrives, nuixLicense):
             conn = sqlite3.connect('settings\\settings.db ')
             cur = conn.cursor()
             cur.execute("Delete FROM Settings")
             conn.commit()
-            cur.execute('INSERT INTO Settings(ScanDrives, LogFileType, CompleteText, '
-                        'AdditionalLogCheck, NuixLicense) VALUES(?,?,?,?,?)',
-                        (scanDrives, logFileType, completeText, additionalLogCheck, nuixLicense,))
+            cur.execute('INSERT INTO Settings(ScanDrives, NuixLicense) VALUES(?,?)',
+                        (scanDrives, nuixLicense,))
             conn.commit()
 
         scanDrives = optionsDriveText.get()
-        logFileType = optionsDriveLogSettingsText.get()
-        completeText = optionsImageCompleteText.get()
-        additionalLogCheck = optionsImageIntegrityText.get()
+
         nuixLicense = nuixLicenseText.get()
 
         if not scanDrives:
@@ -446,7 +426,7 @@ def generalOptionsWindow(event=None):
                                  'You must include drives to scan.')
             generalOptionsWin.lift()
         else:
-            storeSettings(scanDrives, logFileType, completeText, additionalLogCheck, nuixLicense)
+            storeSettings(scanDrives, nuixLicense)
 
     def readSettings():
         sconn = sqlite3.connect('settings\\settings.db ')
@@ -457,25 +437,18 @@ def generalOptionsWindow(event=None):
 
         if not rows:
             optionsDriveText.delete(0, 'end')
-            optionsDriveLogSettingsText.delete(0, 'end')
-            optionsImageCompleteText.delete(0, 'end')
-            optionsImageIntegrityText.delete(0, 'end')
+
 
         else:
             optionsDriveText.delete(0, 'end')
             optionsDriveText.insert(INSERT, rows[0][0])
-            optionsDriveLogSettingsText.delete(0, 'end')
-            optionsDriveLogSettingsText.insert(INSERT, rows[0][1])
-            optionsImageCompleteText.delete(0, 'end')
-            optionsImageCompleteText.insert(INSERT, rows[0][2])
-            optionsImageIntegrityText.delete(0, 'end')
-            optionsImageIntegrityText.insert(INSERT, rows[0][3])
+
             nuixLicenseText.delete(0, 'end')
             nuixLicenseText.insert(INSERT, rows[0][4])
 
     generalOptionsWin = Tk()
     generalOptionsWin.title("General Options")
-    generalOptionsWin.geometry("300x560")
+    generalOptionsWin.geometry("300x250")
     generalOptionsWin.resizable(width=False, height=False)
 
     optionsDriveLabel = Label(generalOptionsWin, text="Drives to scan for forensic tools:")
@@ -492,24 +465,7 @@ def generalOptionsWindow(event=None):
     sep = ttk.Separator(generalOptionsWin, orient='horizontal')
     sep.pack(pady=4, fill='x')
 
-    optionsDriveSettings = Label(generalOptionsWin, text="Image Monitor Settings - Work in progress")
-    optionsDriveSettings.pack(pady=1)
-    sep = ttk.Separator(generalOptionsWin, orient='horizontal')
-    sep.pack(pady=4, fill='x')
-    optionsDriveLogSettings = Label(generalOptionsWin, text="Log file extension")
-    optionsDriveLogSettings.pack(pady=5)
-    optionsDriveLogSettingsText = Entry(generalOptionsWin, width=10, bg="white")
-    optionsDriveLogSettingsText.pack(pady=1)
-    optionsImageComplete = Label(generalOptionsWin, text="Imaging complete indicator")
-    optionsImageComplete.pack(pady=5)
-    optionsImageCompleteText = Entry(generalOptionsWin, width=40, bg="white")
-    optionsImageCompleteText.pack(pady=1)
-    optionsImageIntegrity = Label(generalOptionsWin, text="Image integrity indicator")
-    optionsImageIntegrity.pack(pady=5)
-    optionsImageIntegrityText = Entry(generalOptionsWin, width=40, bg="white")
-    optionsImageIntegrityText.pack(pady=1)
-    sep = ttk.Separator(generalOptionsWin, orient='horizontal')
-    sep.pack(pady=4, fill='x')
+
 
     optionsSave = Button(generalOptionsWin, text='Save', command=save)
     optionsSave.pack(padx=25, side=RIGHT)
