@@ -63,6 +63,7 @@ def jenkinsSettingsWindow(event=None):
         cur = conn.cursor()
         cur.execute("Delete FROM Node Where Tool = '" + tool + "'")
         conn.commit()
+        # This should be changed before compiling
         key = bytes(b'om1np7SF2rtxOEop_Vxbg8MgMokQX0AVRhOAT1fLLkg=')
         fernet = Fernet(key)
         encPassword = fernet.encrypt(password.encode())
