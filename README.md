@@ -46,5 +46,5 @@ Settings\\
 
 ## Feedback
 
-If you have any feedback, please reach out to us at admin@autof.uk or post in autof.uk/Forum
+If you have any feedback, please reach out to us at admin@autof.uk or post in autof.uk/Forum  
 https://www.autof.uk/
