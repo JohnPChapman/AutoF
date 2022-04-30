@@ -1,3 +1,4 @@
+# Re-paths Nuix cases
 import os
 from datetime import datetime
 import shutil
@@ -7,9 +8,10 @@ from tkinter import filedialog
 from tkinter import messagebox
 import logging
 import re
-import subprocess
-from autologging import logged, TRACE, traced
+from autologging import traced
 from tkinter.ttk import Progressbar
+import webbrowser
+
 
 # Date and time
 @traced
@@ -72,11 +74,16 @@ def repath(event=None):
                                  'Operation root not selected!')
             return
         # create file handler which logs even debug messages
-        log = myPath + '\\Re-Path ' + now() + '.log'
+        log = myPath + '\\Re-Path ' + now() + '.html'
         fh = logging.FileHandler(log)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
-
+        logger.info('<!DOCTYPE html>')
+        logger.info('<html>')
+        logger.info('<body>')
+        logger.info('<p>------------------------------------------</p>')
+        logger.info('<p>Replacements</p>')
+        logger.info('<p>------------------------------------------</p>')
         # stores all files in list
         progress.start()
         if altImageButton["state"] == NORMAL and altImageText.get() != "":
@@ -130,7 +137,8 @@ def repath(event=None):
                     pattern = '"(.*?)"'
                     file = re.search(pattern, line).group(1)
                     if os.path.isfile(file):
-                        logger.info(file + ' Exists in correct location.')
+                        logger.info('<p><a href="file:///' + os.path.dirname(file) + '">' + file + '</a>' +
+                                    ' Exists in correct location.' + '</p>')
                         found = 'true'
                     else:
 
@@ -146,29 +154,30 @@ def repath(event=None):
                                 fileIn = open(i, 'wt')
                                 fileIn.write(data)
                                 fileIn.close()
-                                logger.info('evidence replaced in ' + i)
+                                logger.info('<p>evidence replaced in ' + '<a href="file:///' + os.path.dirname(i) + '">'
+                                            + i + '</a></p>')
                                 found = 'true'
             if found == 'false':
-                logger.error('')
-                logger.error(' Image for ' + i + ' NOT FOUND')
-                logger.error('')
+                logger.error('<p></p>')
+                logger.error('<p>' + ' Image for ' + '<a href="file:///' + os.path.dirname(i) + '">' + i + '</a>NOT FOUND</p>')
+                logger.error('<p></p>')
 
-        logger.info('------------------------------------------')
-        logger.info('Cases Found')
-        logger.info('------------------------------------------')
+        logger.info('<p>------------------------------------------</p>')
+        logger.info('<p>Cases Found</p>')
+        logger.info('<p>------------------------------------------</p>')
         for i in nxml:
-            logger.info(i)
-        logger.info('------------------------------------------')
-        logger.info('Images Found')
-        logger.info('------------------------------------------')
+            logger.info('<p><a href="file:///' + os.path.dirname(i) + '">' + i + '</a></p>')
+        logger.info('<p>------------------------------------------</p>')
+        logger.info('<p>Images Found</p>')
+        logger.info('<p>------------------------------------------</p>')
         if len(imagesFound) == 0:
-            logger.info('Images not searched for.')
+            logger.info('<p>Images not searched for.</p>')
         else:
             for i in imagesFound:
-                logger.info(i)
+                logger.info('<p><a href="file:///' + os.path.dirname(i) + '">' + i + '</a></p>')
         progress.stop()
         messagebox.showinfo("Complete", "Re-pathing complete.")
-        subprocess.Popen(['notepad.exe', log])
+        webbrowser.open('file:///' + log, new=0)
         progress.destroy()
         runButton.config(state=NORMAL)
     # Main window
@@ -188,8 +197,7 @@ def repath(event=None):
 
     # Image Path selection
 
-    altImageCheck = Checkbutton(windowRepath, text="Alternate Image Path",
-                                  command=altImageBox)
+    altImageCheck = Checkbutton(windowRepath, text="Alternate Image Path", command=altImageBox)
     altImageCheck.place(x=12, y=0)
     altImageText = Entry(windowRepath, width=40, bg="white", state=DISABLED)
     altImageText.place(x=15, y=65)

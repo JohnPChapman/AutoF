@@ -1,5 +1,4 @@
-# AutoF Jenkins handler Beta 0.0.1
-from tkinter import *
+# AutoF Jenkins handler
 from tkinter import messagebox
 import sqlite3
 import jenkins

@@ -1,16 +1,16 @@
+# Gets Nuix and X-Ways case versions
 import os
 from datetime import datetime
-import shutil
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 import logging
 import re
-import subprocess
-from autologging import logged, TRACE, traced
+from autologging import traced
 from tkinter.ttk import Progressbar
-import threading
+import webbrowser
+
 
 # Date and time
 @traced
@@ -53,8 +53,8 @@ def caseInfo(event=None):
             messagebox.showerror('Error!',
                                  'Operation root not selected!')
             return
-        log = myPath + '\\Case Information ' + now() + '.txt'
-        fh = logging.FileHandler(log, encoding='cp1252')
+        log = myPath + '\\Case Information ' + now() + '.html'
+        fh = logging.FileHandler(log)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
         progress = Progressbar(windowCaseInfo, orient=HORIZONTAL, length=250, mode='indeterminate')
@@ -74,58 +74,59 @@ def caseInfo(event=None):
             elif i.endswith('.xfc'):
                 xcfg.append(convertPath(i))
 
-        logger.info('--------------------')
-        logger.info('Nuix Cases')
-        logger.info('--------------------')
+        logger.info('<p>--------------------</p>')
+        logger.info('<p>Nuix Cases</p>')
+        logger.info('<p>--------------------</p>')
         if len(nxml) == 0:
-            logger.info(' 0 Nuix cases found')
+            logger.info('<p> 0 Nuix cases found</p>')
             logger.info('--------------------')
             logger.info('')
         else:
-            logger.info(str(len(nxml)) + ' Nuix cases found')
-            logger.info('--------------------')
-            logger.info('')
+            logger.info('<p>' + str(len(nxml)) + ' Nuix cases found</p>')
+            logger.info('<p>--------------------')
+            logger.info('<p> </p>')
         for i in nxml:
-            f = open( i, 'r', encoding='UTF-8')
+            f = open(i, 'r', encoding='UTF-8')
             for line in f:
                 windowCaseInfo.update()
                 if 'name' in line and 'graphDatabaseSettings' not in line and 'version' not in line:
                     l = line
                     l = l.replace('<name>', '')
                     l = l.replace('</name>', '')
-                    logger.info(i)
-                    logger.info(l.strip())
+                    logger.info('<pre><a href="file:///' + os.path.dirname(i) + '/">' + i + '</a></pre>')
+                    logger.info('<p>' + l.strip() + '</p>')
                 elif 'saved-by-product' in line:
                     l = line
                     l = l.replace('<saved-by-product name="Nuix" version="','')
                     l = l.replace('" />','')
-                    logger.info(l.strip())
-                    logger.info('')
+                    logger.info('<p>' + l.strip() + '</p>')
+                    logger.info('<p> </p>')
 
 
-        logger.info('--------------------')
-        logger.info('X-Ways Cases')
-        logger.info('--------------------')
+        logger.info('<p>--------------------</p>')
+        logger.info('<p>X-Ways Cases</p>')
+        logger.info('<p>--------------------</p>')
         if len(xcfg) == 0:
-            logger.info(' 0 X-Ways cases found')
-            logger.info('--------------------')
-            logger.info('')
+            logger.info('<p> 0 X-Ways cases found</p>')
+            logger.info('<p>--------------------</p>')
+            logger.info('<p> </p>')
         else:
-            logger.info(str(len(xcfg)) + ' X-Ways cases found')
-            logger.info('--------------------')
-            logger.info('')
+            logger.info('<p>' + str(len(xcfg)) + ' X-Ways cases found</p>')
+            logger.info('<p>--------------------</p>')
+            logger.info('<p> </p>')
         for i in xcfg:
             windowCaseInfo.update()
             f = open( i, 'r', encoding='cp1252', errors='ignore')
             filetext = f.read()
             f.close()
             matches = re.findall("X-Ways Forensics [0-9]*\.[0-9]+ SR-\d", filetext)
-            logger.info(i)
-            logger.info(matches[0])
-            logger.info('')
+            logger.info('<pre><a href="file:///' + os.path.dirname(i) + '/">' + i + '</a></pre>')
+            logger.info('<p>' + matches[0]+ '</p>')
+            logger.info('<p> </p>')
+            logger.info('<p> </p>')
         progress.stop()
         messagebox.showinfo("Complete", "Case search complete.")
-        subprocess.Popen(['notepad.exe', log])
+        webbrowser.open('file:///' + log, new=0)
         progress.destroy()
         runButton.config(state=NORMAL)
     # Main window

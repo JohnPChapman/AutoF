@@ -1,4 +1,4 @@
-# Forensic case automater Version Beta 0.7.0
+# Forensic case automater
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -19,7 +19,7 @@ from AutoI import imageMonitor
 from NuixRepath import repath
 from CaseInfo import caseInfo
 import logging
-from autologging import logged, TRACE, traced
+from autologging import TRACE, traced
 import win32com.client
 import psutil
 from pathlib import Path
