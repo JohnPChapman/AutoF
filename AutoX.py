@@ -1,5 +1,4 @@
-# X-Ways Forensics case automater Version Beta 0.0.1
-# AutoF settings handler Beta 0.0.1
+# X-Ways Forensics case automater
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Progressbar

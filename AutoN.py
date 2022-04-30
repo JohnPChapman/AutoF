@@ -1,4 +1,4 @@
-# Nuix Forensics case automater Version Beta 0.0.1
+# Nuix Forensics case automater
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Progressbar
@@ -6,7 +6,7 @@ import subprocess
 import os
 import sqlite3
 from AutoS import convertPath, now
-from autologging import logged, TRACE, traced
+from autologging import traced
 
 
 # Process all images, individual cases by default
@@ -90,7 +90,6 @@ def nCompound(path, images, caseSave, script, cName):
     imagesWindow.geometry("300x70")
     imagesWindow.resizable(width=False, height=False)
     imagesWindow.attributes('-disabled', True)
-    progressDivide = 100 / len(images)
     Label(imagesWindow, text="Running Nuix in Single Case mode").place(x=25, y=5)
     progress = Progressbar(imagesWindow, orient=HORIZONTAL, length=250, mode='indeterminate')
     progress.place(x=25, y=35)
@@ -118,7 +117,7 @@ def nCompound(path, images, caseSave, script, cName):
 
     for line in fin:
         if 'AUTOFCASEPATH' in line:
-                fout.write(line.replace('AUTOFCASEPATH', str(cpath)))
+            fout.write(line.replace('AUTOFCASEPATH', str(cpath)))
         elif 'CASENAME' in line:
             fout.write(line.replace('CASENAME', str(cName)))
         elif 'AUTOFIMAGE' in line:
@@ -129,7 +128,7 @@ def nCompound(path, images, caseSave, script, cName):
             count = 0
             while count < len(images):
                 imagePath = images[count].replace('\\', '/')
-                fout.write('    evidence.addFile("'+ imagePath + '")\n')
+                fout.write('    evidence.addFile("' + imagePath + '")\n')
                 count = count + 1
         else:
             fout.write(line)

@@ -1,4 +1,4 @@
-# AutoF settings handler Beta 0.0.1
+# AutoF settings handler
 from datetime import datetime
 import tkinter as tk
 from tkinter import *
