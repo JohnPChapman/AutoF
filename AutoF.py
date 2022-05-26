@@ -543,7 +543,7 @@ def run():
             if str(xVersions[x]) == version:
                 path = xInstalls[x]
 
-        if 'x-ways' in path.lower():
+        if 'xwforensics' in path.lower():
 
             for file in xCFG:
                 try:
