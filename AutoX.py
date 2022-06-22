@@ -4,10 +4,10 @@ from tkinter import messagebox
 from tkinter.ttk import Progressbar
 import subprocess
 import os
-import sys
 from AutoS import convertPath, now
 from autologging import logged, TRACE, traced
-
+import threading, time, random
+from queue import Queue
 
 # RVS over existing cases COMPLETE
 @traced
@@ -35,7 +35,7 @@ def caseMode(path, cases, caseSave):
 
 # Create compound case, all images in one case COMPLETE
 @traced
-def xCompound(path, images, caseSave, compoundName):
+def xCompound(path, images, caseSave, compoundName, dt):
     compoundWindow = Tk()
     compoundWindow.title("AutoF X-Ways Single Case")
     compoundWindow.geometry("300x70")
@@ -79,13 +79,17 @@ def xCompound(path, images, caseSave, compoundName):
         compoundWindow.update()
 
     progress.stop()
-    messagebox.showinfo("Complete", "Process complete.")
-    compoundWindow.destroy()
+    if dt == 2:
+        messagebox.showinfo("Complete", "Process complete.")
+        compoundWindow.destroy()
+    else:
+        compoundWindow.destroy()
+
 
 
 # Process all images, individual cases by default COMPLETE
 @traced
-def processImages(path, images, caseSave):
+def processImages(path, images, caseSave, dt):
 
     imagesWindow = Tk()
     imagesWindow.title("AutoF X-Ways Image")
@@ -96,7 +100,7 @@ def processImages(path, images, caseSave):
     Label(imagesWindow, text="Running X-ways in Image mode").place(x=25, y=5)
     progress = Progressbar(imagesWindow, orient=HORIZONTAL, length=250, mode='determinate')
     progress.place(x=25, y=35)
-
+    imagesWindow.attributes('-topmost', True)
     if not caseSave:
         messagebox.showinfo("ERROR", "No case save location selected")
         return None
@@ -122,8 +126,11 @@ def processImages(path, images, caseSave):
             imagesWindow.update()
         progress['value'] += progressDivide
 
-    messagebox.showinfo("Complete", "Process complete.")
-    imagesWindow.destroy()
+    if dt == 2:
+        messagebox.showinfo("Complete", "Process complete.")
+        imagesWindow.destroy()
+    else:
+        imagesWindow.destroy()
 
 
 # Combines x-ways cases and retains RVS
@@ -137,3 +144,34 @@ def xCombine(path, cases, saveName, caseSave):
     allExhibits = ''.join(exhibitList)
 
     subprocess.Popen(path + ' "NewCase:' + convertPath(caseSave) + '\\' + saveName + '\\' + saveName +'"' + allExhibits + 'Override:1  auto')
+
+
+# Runs in concurrent mode
+@traced
+def xConcurrent(path, images, caseSave, tCount):
+    jobs = Queue()
+
+    def runConc(q):
+        while not q.empty():
+            value = q.get()
+            time.sleep(random.randint(1, 5))
+            subprocess.call(value)
+            q.task_done()
+
+    # put all commands to run x-ways into queue
+    for i in range(len(images)):
+        caseName = os.path.split(images[i])
+        cPath = convertPath(caseSave + '/') + os.path.splitext(caseName[1])[
+            0] + "\\" + os.path.splitext(caseName[1])[0]
+        if os.path.exists(cPath):
+            cPath = convertPath(caseSave + '/') + os.path.splitext(caseName[1])[
+                0] + ' ' + now() + "\\" + os.path.splitext(caseName[1])[0]
+        jobs.put(
+            path + ' "' + "NewCase:" + cPath + '"' + " " + '"' + "AddImage:" + convertPath(
+                images[i]) + '"' + " RVS:~ Override:1 Cfg:WinHex.cfg auto")
+
+
+    for i in range(int(tCount)):
+        worker = threading.Thread(target=runConc, args=(jobs,))
+        worker.start()
+

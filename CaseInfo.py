@@ -124,20 +124,21 @@ def caseInfo(event=None):
             logger.info('<p>' + matches[0]+ '</p>')
             logger.info('<p> </p>')
             logger.info('<p> </p>')
+
         progress.stop()
         messagebox.showinfo("Complete", "Case search complete.")
         webbrowser.open('file:///' + log, new=0)
         progress.destroy()
         runButton.config(state=NORMAL)
     # Main window
-    windowCaseInfo = Tk()
+    windowCaseInfo = Toplevel()
     windowCaseInfo.title("Case Info")
     windowCaseInfo.geometry("400x135")
     windowCaseInfo.iconbitmap('settings\\ax.ico')
     windowCaseInfo.resizable(width=False, height=False)
     windowCaseInfo.lift()
     windowCaseInfo.attributes('-topmost', True)
-
+    windowCaseInfo.grab_set()
     # Operation Selection
     dirFolderText = Entry(windowCaseInfo, width=40, bg="white", state=DISABLED)
     dirFolderText.place(x=15, y=25)

@@ -12,10 +12,9 @@ import sys
 import os
 from AutoS import convertPath, jenkinsSettingsWindow, aboutWindow, indexWindow, getXways, imageXSort, \
     generalOptionsWindow, now
-from AutoX import processImages, xCompound, caseMode, xCombine
+from AutoX import processImages, xCompound, caseMode, xCombine, xConcurrent
 from AutoJ import xnodeMode
-from AutoN import processImagesN, nCompound
-from AutoI import imageMonitor
+from AutoN import processImagesN, nCompound, nConcurrent
 from NuixRepath import repath
 from CaseInfo import caseInfo
 import logging
@@ -23,6 +22,7 @@ from autologging import TRACE, traced
 import win32com.client
 import psutil
 from pathlib import Path
+from DualTool import dualTool
 
 logging.basicConfig(level=TRACE, filename=('settings\logs\RunLog ' + now() + '.txt'),
                     format="%(asctime)s:%(levelname)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s")
@@ -50,17 +50,26 @@ def clearAll(event=None):
     compound.set(0)
     xComb.set(0)
     iMonitor.set(0)
+    dtMode.set(0)
+    ufdrFilter.set(0)
+    xConc.set(0)
+    imageList.config(state=NORMAL)
     compCheck.config(state=NORMAL)
     cModeCheck.config(state=NORMAL)
     nModeCheck.config(state=NORMAL)
     xCombCheck.config(state=NORMAL)
+    ufdrFilterCheck.config(state=NORMAL)
+    xConcCheck.config(state=NORMAL)
+    versOption.config(state=NORMAL)
+    profOption.config(state=NORMAL)
     versOption.destroy()
     versOption = OptionMenu(window, vers, *xVersions, command=xProfile)
     vers.set(xVersions[0])
     versOption.place(x=30, y=190)
     xProfile(profOption)
     ufdrFilter.set(0)
-
+    threadCountSet.set(threadCount[0])
+    threadMenu.config(state="disabled")
 
 @traced
 def exitAF(event=None):
@@ -131,7 +140,7 @@ def imageSelect():
     imageFolderText.insert(0, myPath)
     imageFolderText.config(state=DISABLED)
 
-    if iMonitor.get() == 0:
+    if iMonitor.get() == 0 and dtMode.get() == 0:
         images = imageXSort(folderSkip, myPath, vers.get(), ufdrFilter.get())
 
         imageList.config(state=NORMAL)
@@ -152,7 +161,7 @@ def xProfile(self):
 
     global xProfiles
     global vers
-
+    getxProfiles = []
     if 'X-ways' in vers.get():
         if os.path.exists('Settings\\X-ways profiles\\') is False:
             profRoot = tk.Tk()
@@ -160,8 +169,10 @@ def xProfile(self):
             messagebox.showerror('Error!',
                                  'Profiles directory does not exist. Perhaps the install is not complete')
             sys.exit(1)
-
-        getxProfiles = os.listdir('Settings\\X-ways profiles\\')
+        for i in os.listdir('Settings\\X-ways profiles\\'):
+            if i.endswith('.cfg'):
+                getxProfiles.append(i)
+        #getxProfiles = os.listdir('Settings\\X-ways profiles\\')
     else:
         getxProfiles = os.listdir('Settings\\Nuix\\Scripts\\')
 
@@ -330,6 +341,63 @@ def ufdrFilterBox():
         for x in images:
             imageList.insert(END, x + '\n\n')
 
+# Manages dual tool Box
+def dtBox():
+    if dtMode.get() == 1:
+        imageList.config(state=NORMAL)
+        imageList.delete('1.0', END)
+        cMode.set(0)
+        nMode.set(0)
+        compound.set(0)
+        xComb.set(0)
+        iMonitor.set(0)
+        ufdrFilter.set(0)
+        xConc.set(0)
+        imageList.config(state=DISABLED)
+        compCheck.config(state=DISABLED)
+        cModeCheck.config(state=DISABLED)
+        nModeCheck.config(state=DISABLED)
+        xCombCheck.config(state=DISABLED)
+        ufdrFilterCheck.config(state=DISABLED)
+        xConcCheck.config(state=DISABLED)
+        versOption.config(state=DISABLED)
+        profOption.config(state=DISABLED)
+        compoundCaseName.config(state=NORMAL)
+        compoundCaseName.delete(0, END)
+        compoundCaseName.config(state=DISABLED)
+        threadCountSet.set(threadCount[0])
+        threadMenu.config(state="disabled")
+    elif dtMode.get() == 0:
+        imageList.config(state=NORMAL)
+        compCheck.config(state=NORMAL)
+        cModeCheck.config(state=NORMAL)
+        nModeCheck.config(state=NORMAL)
+        xCombCheck.config(state=NORMAL)
+        ufdrFilterCheck.config(state=NORMAL)
+        xConcCheck.config(state=NORMAL)
+        versOption.config(state=NORMAL)
+        profOption.config(state=NORMAL)
+
+        myPath = imageFolderText.get()
+        if ufdrFilter.get() == 1:
+            images = imageXSort(folderSkip, myPath, 'ufdr', ufdrFilter.get())
+        else:
+            images = imageXSort(folderSkip, myPath, vers.get(), ufdrFilter.get())
+
+        imageList.config(state=NORMAL)
+        imageList.delete('1.0', END)
+        for x in images:
+            imageList.insert(END, x + '\n\n')
+
+# Manages concurrent box
+@traced
+def concurrentBox():
+    if xConc.get() == 1:
+        messagebox.showwarning("Warning", "This is experimental, for X-Ways special settings are required in the CFG")
+        threadMenu.config(state="normal")
+    else:
+        threadCountSet.set(threadCount[0])
+        threadMenu.config(state="disabled")
 
 # Skip menu COMPLETE
 @traced
@@ -461,6 +529,15 @@ def run():
     global xVersions
     global xCFG
     path = ''
+    if dtMode.get() == 1:
+        if imageFolderText.get() == '' or caseSaveText.get() == '':
+            messagebox.showerror("ERROR", "Ensure image path and case path are selected")
+            return
+        else:
+            dualTool(caseSaveText.get(),imageFolderText.get(),xInstalls,xVersions,xCFG, folderSkip)
+            clearAll()
+            return
+
     if 'Check scan drive' in vers.get():
         messagebox.showerror("ERROR", "Processing tools not found")
         return
@@ -469,6 +546,7 @@ def run():
         tool = 'xways'
     else:
         tool = 'nuix'
+
     if tool == 'xways':
         vidpid =[]
         wmi = win32com.client.GetObject("winmgmts:")
@@ -511,12 +589,6 @@ def run():
     if compoundCaseName.get() == '' and compound.get() == 1:
         messagebox.showerror("ERROR", "Insert compound name")
         return
-    if iMonitor.get() == 1:
-        window.withdraw()
-        imageMonitor(tool, imageFolderText.get(), caseSaveText.get(), prof.get())
-        window.deiconify()
-        clearAll()
-        return
     if xComb.get() == 1:
         if compoundCaseName.get() == '':
             messagebox.showerror("ERROR", "Insert Master name in Compound field")
@@ -547,6 +619,7 @@ def run():
 
             for file in xCFG:
                 try:
+                    copyfile('Settings\\X-ways profiles\\Concurrent.dlg', os.path.dirname(file[0]) + '\\Concurrent.dlg')
                     copyfile('Settings\\X-ways profiles\\' + profile, file[0])
                 except:
                     messagebox.showinfo("ERROR", "CFG failed to copy, selected profile not used.")
@@ -599,19 +672,27 @@ def run():
 
     # Check if compound, then run images individually
     elif compound.get() == 0:
+
         window.withdraw()
-        if 'x-ways' in path.lower():
-            processImages(path, images, caseSaveText.get())
+        if 'xwforensics' in path.lower():
+
+            if xConc.get() ==1:
+                xConcurrent(path, images,caseSaveText.get(), threadCountSet.get())
+            else:
+                processImages(path, images, caseSaveText.get(), 2)
         elif 'nuix' in path.lower():
-            processImagesN(path, images, caseSaveText.get(), profile)
+            if xConc.get() == 1:
+                nConcurrent(path, images, caseSaveText.get(), profile, threadCountSet.get())
+            else:
+                processImagesN(path, images, caseSaveText.get(), profile, 2)
         window.deiconify()
     # Runs compound mode
     else:
         window.withdraw()
         if 'x-ways' in path.lower():
-            xCompound(path, images, caseSaveText.get(), compoundCaseName.get())
+            xCompound(path, images, caseSaveText.get(), compoundCaseName.get(),2)
         elif 'nuix' in path.lower():
-            nCompound(path, images, caseSaveText.get(), profile, compoundCaseName.get())
+            nCompound(path, images, caseSaveText.get(), profile, compoundCaseName.get(),2)
         window.deiconify()
     clearAll()
 
@@ -750,6 +831,22 @@ xCombCheck .place(x=335, y=119)
 ufdrFilter = tk.IntVar()
 ufdrFilterCheck = Checkbutton(window, text="UFDR", variable=ufdrFilter, onvalue=1, offvalue=0, command=ufdrFilterBox)
 ufdrFilterCheck.place(x=335, y=139)
+
+# Dual Tool Mode
+dtMode = tk.IntVar()
+dtModeCheck = Checkbutton(window, text="Dual tool", variable=dtMode, onvalue=1, offvalue=0, command=dtBox)
+dtModeCheck.place(x=335, y=159)
+
+# Concurrent mode
+xConc = tk.IntVar()
+xConcCheck = Checkbutton(window, text="Concurrent", variable=xConc, onvalue=1, offvalue=0, command=concurrentBox)
+xConcCheck.place(x=335, y=179)
+threadCount = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32]
+threadCountSet = StringVar(window)
+threadCountSet.set(threadCount[0])
+threadMenu= OptionMenu(window, threadCountSet, *threadCount)
+threadMenu.config(state="disabled")
+threadMenu.place(x=335, y=199)
 
 # exit and run buttons
 exitButton = Button(window, text="Exit", fg="red", command=exitAF)

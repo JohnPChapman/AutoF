@@ -136,11 +136,11 @@ def jenkinsSettingsWindow(event=None):
             jenkinsSettingsTextProc.delete(0, 'end')
             jenkinsSettingsTextProc.insert(INSERT, rows[0][7])
 
-    jenkinsSettingsWin = Tk()
+    jenkinsSettingsWin = Toplevel()
     jenkinsSettingsWin.title("Jenkins Settings")
     jenkinsSettingsWin.geometry("300x450")
     jenkinsSettingsWin.resizable(width=False, height=False)
-
+    jenkinsSettingsWin.grab_set()
     try:
         jenkinsSettingsWin.iconbitmap('settings\\ax.ico')
     except:
@@ -318,7 +318,7 @@ def getXways():
         elif 'nuix_console.exe' in line:
             versions.append('Nuix ' + info)
 
-    # Checks lists if - 0 then exit as x-ways not found
+    # Checks lists if - 0 then warn and instruct as x-ways not found
     if len(installs) == 0 or len(versions) == 0:
         messagebox.showerror('Error!', 'X-ways not found! Change the drive to scan in settings and run Force Scan')
         installs.append('Error')
@@ -447,10 +447,11 @@ def generalOptionsWindow(event=None):
             nuixLicenseText.delete(0, 'end')
             nuixLicenseText.insert(INSERT, rows[0][4])
 
-    generalOptionsWin = Tk()
+    generalOptionsWin = Toplevel()
     generalOptionsWin.title("General Options")
     generalOptionsWin.geometry("300x250")
     generalOptionsWin.resizable(width=False, height=False)
+    generalOptionsWin.grab_set()
 
     optionsDriveLabel = Label(generalOptionsWin, text="Drives to scan for forensic tools:")
     optionsDriveLabel.pack(pady=5)

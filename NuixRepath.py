@@ -181,13 +181,14 @@ def repath(event=None):
         progress.destroy()
         runButton.config(state=NORMAL)
     # Main window
-    windowRepath = Tk()
+    windowRepath = Toplevel()
     windowRepath.title("Nuix RePath")
     windowRepath.geometry("400x135")
     windowRepath.iconbitmap('settings\\ax.ico')
     windowRepath.resizable(width=False, height=False)
     windowRepath.lift()
     windowRepath.attributes('-topmost', True)
+    windowRepath.grab_set()
 
     # Operation Selection
     dirFolderText = Entry(windowRepath, width=40, bg="white", state=DISABLED)
