@@ -11,7 +11,7 @@ import ctypes
 import sys
 import os
 from AutoS import convertPath, jenkinsSettingsWindow, aboutWindow, indexWindow, getXways, imageXSort, \
-    generalOptionsWindow, now
+    generalOptionsWindow, now, create_settings
 from AutoX import processImages, xCompound, caseMode, xCombine, xConcurrent
 from AutoJ import xnodeMode
 from AutoN import processImagesN, nCompound, nConcurrent
@@ -23,7 +23,7 @@ import win32com.client
 import psutil
 from pathlib import Path
 from DualTool import dualTool
-
+import re
 logging.basicConfig(level=TRACE, filename=('settings\logs\RunLog ' + now() + '.txt'),
                     format="%(asctime)s:%(levelname)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s")
 
@@ -172,9 +172,12 @@ def xProfile(self):
         for i in os.listdir('Settings\\X-ways profiles\\'):
             if i.endswith('.cfg'):
                 getxProfiles.append(i)
-        #getxProfiles = os.listdir('Settings\\X-ways profiles\\')
+
     else:
-        getxProfiles = os.listdir('Settings\\Nuix\\Scripts\\')
+        for p in os.listdir('Settings\\Nuix\\Scripts\\'):
+            if '.rb' in p:
+                getxProfiles.append(p)
+
 
     if len(getxProfiles) == 0:
         messagebox.showerror('Error!',
@@ -445,9 +448,16 @@ def folderSkipWindow(event=None):
 
 # manages xCombine box behaviour
 @traced
-def xCombineBox(): # CHECK IF CAN DO GREATER THAN
-    if '20.3.0.0' not in vers.get() and '20.4.0.0' not in vers.get() and '20.5.0.0' not in vers.get():
+def xCombineBox():
 
+    versCheck = re.sub("[^0-9.]", "", vers.get())
+    if "Nuix" in vers.get():
+        messagebox.showinfo("ERROR", "Combining of cases is only supported in X-Ways version 20.3 and later")
+        xComb.set(0)
+        return
+    versCheck = versCheck[:4]
+    versCheck = float(versCheck)
+    if versCheck < 20.3:
         messagebox.showinfo("ERROR", "Combining of cases is only supported in X-Ways version 20.3 and later")
         xComb.set(0)
         return
@@ -704,6 +714,13 @@ if not isAdmin():
     messagebox.showerror('Error!',
                          'You must run as Administrator')
     sys.exit(1)
+
+
+# Checks for settings.db creates one if missing
+settingsDbCheck = os.path.exists('Settings\\settings.db')
+if settingsDbCheck == False:
+    create_settings()
+
 
 # scans for X-Ways
 xInstalls, xVersions, xCFG = getXways()

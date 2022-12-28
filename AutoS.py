@@ -300,7 +300,7 @@ def getXways():
         for iRoot, directories, files in os.walk(i, topdown=False):
             settings.update_idletasks()
             for name in files:
-                if '$' not in os.path.join(iRoot, name) and (name.endswith('xwforensics64.exe') or name.endswith('xwforensics.exe') \
+                if '$' not in os.path.join(iRoot, name) and (name.endswith('xwforensics64.exe') or name.endswith('xwforensics.exe')
                         or name.endswith('nuix_console.exe')):
                     fileScan.config(text='Found: ' + name)
                     installs.append(convertPath(os.path.join(iRoot, name)))
@@ -362,7 +362,7 @@ def imageXSort(folderskip, mypath, tool, ufdr):
     if 'X-ways' in tool and ufdr == 0:
         for iRoot, directories, files in os.walk(mypath, topdown=False):
             for name in files:
-                if '.e01' in name[-4:] or '.001' in name[-4:] or '.E01' in name[-4:] or '.dd' in name[
+                if '.e01' in name[-4:] or '.001' in name[-4:] or '.E01' in name[-4:] or '.EX01' in name[-5:] or '.ex01' in name[-5:] or '.dd' in name[
                                                                                                  -3:] or '.img' in name[
                                                                                                  -4:] or '.ctr' in name[
                                                                                                  -4:] or '.vhd' in name[
@@ -379,7 +379,7 @@ def imageXSort(folderskip, mypath, tool, ufdr):
     else:
         for iRoot, directories, files in os.walk(mypath, topdown=False):
             for name in files:
-                if '.e01' in name[-4:] or '.001' in name[-4:] or '.E01' in name[-4:] or '.dd' in name[
+                if '.e01' in name[-4:] or '.001' in name[-4:] or '.E01' in name[-4:] or '.EX01' in name[-5:] or '.ex01' in name[-5:] or '.dd' in name[
                                                                                                  -3:] or '.img' in name[
                                                                                                  -4:] or '.ctr' in name[
                                                                                                  -4:] or '.vhd' in name[
@@ -476,3 +476,50 @@ def generalOptionsWindow(event=None):
     generalOptionsWin.grab_set()
 
     readSettings()
+
+
+@traced
+def create_settings():
+    conn = None
+    conn = sqlite3.connect("settings\\settings.db")
+    print(sqlite3.version)
+    s = conn.cursor()
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS CFG
+              ([Path] Text)
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS ErrorLog
+              ([ID] NUMERIC, [DateTime] TEXT, [Error] TEXT)
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS Node
+              ([Tool] TEXT, [IP], [User], [Password] BLOB, [Job], [Pool], [Key], [Xways], [Profile])
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS RunLog
+              ([ID] PRIMARY KEY, [DateTime], [ImagesPath], [CasePath], [Profile] BLOB, [Images], [Cases], [Length], 
+              [TotalImageSize], [TotalCaseSize])
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS Settings
+              ([ScanDrives], [LogFileType], [CompleteText], [AdditionalLogCheck], [NuixLicense] TEXT)
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS Skip
+              ([Name] TEXT)
+              ''')
+    s.execute('''
+              CREATE TABLE IF NOT EXISTS Xways
+              ([Location] TEXT, [Version] NUMERIC)
+              ''')
+    s.execute('''
+                INSERT INTO Settings (ScanDrives, NuixLicense)
+                VALUES
+                ('c:\\', '-licencesourcetype dongle')
+               ''')
+    s.execute('''
+                PRAGMA auto_vacuum = FULL
+              ''')
+    conn.commit()
+    conn.close()

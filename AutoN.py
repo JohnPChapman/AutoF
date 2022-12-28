@@ -10,6 +10,7 @@ from autologging import traced
 import threading, time, random
 from queue import Queue
 
+
 # Process all images, individual cases by default
 @traced
 def processImagesN(path, images, caseSave, script, dt):
@@ -84,6 +85,7 @@ def processImagesN(path, images, caseSave, script, dt):
 # Process all images into a compound
 @traced
 def nCompound(path, images, caseSave, script, cName, dt):
+    print(images)
     sconn = sqlite3.connect('settings\\settings.db ')
     scur = sconn.cursor()
     scur.execute("Select NuixLicense FROM Settings")
@@ -129,11 +131,11 @@ def nCompound(path, images, caseSave, script, cName, dt):
             imagePath = image.replace('\\', '/')
             fout.write(line.replace('AUTOFIMAGE', imagePath))
             images.pop(0)
-            count = 0
-            while count < len(images):
-                imagePath = images[count].replace('\\', '/')
-                fout.write('    evidence.addFile("' + imagePath + '")\n')
-                count = count + 1
+            count2 = 0
+            while count2 < len(images):
+                imagePath = images[count2].replace('\\', '/')
+                fout.write('    evidence.addFile("' + imagePath + '")' + '\n')
+                count2 = count2 + 1
         else:
             fout.write(line)
     fin.close()
